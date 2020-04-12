@@ -44,18 +44,52 @@ suite('Functional Tests', function() {
           done();
         });
       });
-      
+      //
       test('1 stock with like again (ensure likes arent double counted)', function(done) {
-        
+       chai.request(server)
+        .get('/api/stock-prices')
+        .query({stock: 'goog', like: true})
+        .end(function(err, res){
+        assert.equal(res.status, 200);
+        assert.property(res.body, 'stockData');
+        assert.property(res.body.stockData[0], 'stock');
+        assert.property(res.body.stockData[0], 'price');
+        assert.property(res.body.stockData[0], 'likes');
+          done();
+        });
       });
       
       test('2 stocks', function(done) {
-        
-      });
+             chai.request(server)
+        .get('/api/stock-prices?stock=GOOG&stock=MSFT')
+        .end(function(err, res){
+        assert.equal(res.status, 200);
+        assert.property(res.body, 'stockData');
+        assert.property(res.body.stockData[0], 'stock');
+        assert.property(res.body.stockData[0], 'price');
+        assert.property(res.body.stockData[0], 'likes');
+        assert.property(res.body.stockData[1], 'stock');
+        assert.property(res.body.stockData[1], 'price');
+        assert.property(res.body.stockData[1], 'likes');
+          done();
+        });
+      });  
       
       test('2 stocks with like', function(done) {
-        
-      });
+             chai.request(server)
+        .get('/api/stock-prices?stock=GOOG&stock=MSFT&like=true')
+        .end(function(err, res){
+        assert.equal(res.status, 200);
+        assert.property(res.body, 'stockData');
+        assert.property(res.body.stockData[0], 'stock');
+        assert.property(res.body.stockData[0], 'price');
+        assert.property(res.body.stockData[0], 'likes');
+        assert.property(res.body.stockData[1], 'stock');
+        assert.property(res.body.stockData[1], 'price');
+        assert.property(res.body.stockData[1], 'likes');
+          done();
+        });
+      });  
       
     });
 

@@ -16,21 +16,33 @@ chai.use(chaiHttp);
 suite('Functional Tests', function() {
     
     suite('GET /api/stock-prices => stockData object', function() {
-      
+      //
       test('1 stock', function(done) {
        chai.request(server)
         .get('/api/stock-prices')
         .query({stock: 'goog'})
         .end(function(err, res){
-          
-          //complete this one too
-          
+        assert.equal(res.status, 200);
+        assert.property(res.body, 'stockData');
+        assert.property(res.body.stockData[0], 'stock');
+        assert.property(res.body.stockData[0], 'price');
+        assert.property(res.body.stockData[0], 'likes');
           done();
         });
       });
       
       test('1 stock with like', function(done) {
-        
+       chai.request(server)
+        .get('/api/stock-prices')
+        .query({stock: 'goog', like: true})
+        .end(function(err, res){
+        assert.equal(res.status, 200);
+        assert.property(res.body, 'stockData');
+        assert.property(res.body.stockData[0], 'stock');
+        assert.property(res.body.stockData[0], 'price');
+        assert.property(res.body.stockData[0], 'likes');
+          done();
+        });
       });
       
       test('1 stock with like again (ensure likes arent double counted)', function(done) {

@@ -31,7 +31,7 @@ var Stock = mongoose.model("Stock", stockSchema);
 module.exports = function (app) {
 
   app.route('/api/stock-prices')
-    .get(function (req, res){
+    .get(async function (req, res){
     var company = []
     var curLikes = 0
     var likeAdder = 0
@@ -40,34 +40,40 @@ module.exports = function (app) {
     else company.push(req.query.stock)
     if(req.query.like=="true"){ likeAdder = 1}
     if(!company){res.send("Please include a company name")}
-    else{
-          var retObj={stockData:[]}
-      company.forEach(async (d)=>{
-      var compObj = await (searcher(d, curLikes, likeAdder, req.ip))
-      retObj.stockData.push(compObj)
-            console.log(retObj)
-      })
-
-       //     retObj.stockData.push(compObj)
-   //   res.send(retObj)
-    }
+    else{ 
+      var retInfo={stockData:[]};
+      async function mapper(){
+      var x = company.map((u)=>{
+        return searcher(u, curLikes, likeAdder, req.ip);
+      });
+      const result = await Promise.all(x)
+      retInfo.stockData=result;
+        console.log(retInfo)
+        res.send(retInfo);
+    
+      
+      }
+    mapper();
+    };    
 });
-  //
+  
 async function searcher(comp, curLikes, likeAdder, likeIP){
   var searchURL = "https://repeated-alpaca.glitch.me/v1/stock/"+comp+"/quote"
-  var resOut =  await fetch(searchURL)
+  var resOut = await fetch(searchURL)
  .then(data => {
-      var newStock=new Stock({
+      return data.json();
+  }).then(jsonResponse => {
+   var newStock=new Stock({
         stock: comp,
-        price: data.latestPrice,
+        price: jsonResponse.latestPrice,
         likes: curLikes+likeAdder,
         likeIP: likeIP
       })
       newStock.save();
       return newStock;
-            })
+ })
+     console.log(resOut);
   return resOut
 }
 
 };
-//

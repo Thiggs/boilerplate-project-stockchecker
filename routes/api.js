@@ -32,7 +32,6 @@ module.exports = function (app) {
 
   app.route('/api/stock-prices')
     .get(function (req, res){
-    var retObj={stockData:[]}
     var company = []
     var curLikes = 0
     var likeAdder = 0
@@ -42,26 +41,33 @@ module.exports = function (app) {
     if(req.query.like=="true"){ likeAdder = 1}
     if(!company){res.send("Please include a company name")}
     else{
-      company.forEach((d)=>{
-    var searchURL = "https://repeated-alpaca.glitch.me/v1/stock/"+d+"/quote"
-    fetch(searchURL)
-  .then((response) => {
-    return response.json();
-  })
-  .then((data) => {
-      var newStock=new Stock({
-        stock: d,
-        price: data.latestPrice,
-        likes: likeAdder,
-        likeIP: req.ip
+          var retObj={stockData:[]}
+      company.forEach(async (d)=>{
+      var compObj = await (searcher(d, curLikes, likeAdder, req.ip))
+      retObj.stockData.push(compObj)
+            console.log(retObj)
       })
-      newStock.save();
-      retObj.stockData.push(newStock)
-      console.log(retObj)
-      res.send(retObj);
-            })
-    });
+
+       //     retObj.stockData.push(compObj)
+   //   res.send(retObj)
     }
 });
+  //
+async function searcher(comp, curLikes, likeAdder, likeIP){
+  var searchURL = "https://repeated-alpaca.glitch.me/v1/stock/"+comp+"/quote"
+  var resOut =  await fetch(searchURL)
+ .then(data => {
+      var newStock=new Stock({
+        stock: comp,
+        price: data.latestPrice,
+        likes: curLikes+likeAdder,
+        likeIP: likeIP
+      })
+      newStock.save();
+      return newStock;
+            })
+  return resOut
+}
+
 };
 //
